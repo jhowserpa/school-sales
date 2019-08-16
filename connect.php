@@ -2,7 +2,7 @@
 	$ParametersConnection = array(
 	  'servidor' => 'localhost',		// Endereço do servidor
 	  'usuario' => 'root',				// Usuário
-	  'senha' => 'HydraAccess6341',					// Senha
+	  'senha' => '',					// Senha
 	  'banco' => 'school'			// Nome do banco de dados
 	);
 
