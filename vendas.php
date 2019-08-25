@@ -4,7 +4,14 @@
 <head>
   <?php
   include("connect.php");
+  session_start();
+
+  if (isset($_SESSION["sEmail"]) == "") {
+    header("Location: login.php");
+  }
+
   include("header.php");
+
   ?>
 </head>
 <style>
@@ -48,7 +55,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="exampleModalLabel">Cadastro / Vendas</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <button type="button" onclick="sair()" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -57,6 +64,8 @@
                 <form class="needs-validation" novalidate>
                   <div class="row">
                     <input type="hidden" name="id" id="id" value="" />
+                    <input type="hidden" name="idVenda" id="idVenda" value="" />
+                    <input type="hidden" name="listProdutos" id="listProdutos" value="" />
                     <div class="col-md-3 mb-3">
                       <label for="status">Status:</label>
                       <select class="custom-select d-block w-100" id="status" name="status" required>
@@ -103,73 +112,77 @@
                       </div>
                     </div>
                   </div>
+
+                  <div class="form-group">
+                    <label for="observacao">Observação:</label>
+                    <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-3 mb-3">
+                      <label for="firstName">Pesquisar:</label>
+                      <input type="text" class="form-control" id="firstName" placeholder="" value="" required>
+                      <div class="invalid-feedback">
+                        Valid first name is required.
+                      </div>
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+                      <label for="state">Produto:</label>
+                      <?php
+                      $strSQL = "";
+                      $strSQL .= " SELECT ";
+                      $strSQL .= "	tbproduto.id, ";
+                      $strSQL .= "	CONCAT(tbproduto.id, ' * ', tbproduto.sDescricao, ' *' ,tbproduto.fpreco) AS prod, ";
+                      $strSQL .= "	CONCAT(tbproduto.sDescricao, ' / QTDE: ',tbproduto.iquantidade) AS CONCAT, ";
+                      $strSQL .= "	tbproduto.sDescricao ";
+                      $strSQL .= " FROM tbproduto";
+                      $retornoQuery = $MySQLi->query($strSQL);
+                      echo "<select key='btnFormEncerrar' name='idProduto' id='idProduto' class='form-control' style='display:block;'>";
+                      echo "<option value=''></option>";
+                      while ($rsDropDown = $retornoQuery->fetch_object())
+                        echo "<option value='" . $rsDropDown->prod . "'>" . $rsDropDown->CONCAT . "</option>";
+                      echo "</select>";
+                      ?>
+                    </div>
+
+                    <div class="col-md-1 mb-3">
+                      <label for="quantidade">Qtde:</label>
+                      <input type="text" class="form-control" id="quantidade" value="" required>
+                      <div class="invalid-feedback">
+                        Valid first name is required.
+                      </div>
+                    </div>
+
+                    <script>
+                      var listProdutos = [];
+                    </script>
+                    <div class="form-group col-sm-1" onclick="addProduto()" style="padding-top: 35px; padding-left: 20px;">
+                      <a><img src="plus.PNG" title="Adicionar Produto?" class="img" alt="Inserir"></a>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table id="table-produto" class='table table-striped table-sm'>
+                      <thead>
+                        <tr>
+                          <th style='width: 5%'>ID</th>
+                          <th style='width: 40%'>DESCRICAO</th>
+                          <th style='width: 10%'>QTD</th>
+                          <th style='width: 10%'>PREÇO</th>
+                          <th style='width: 20%'>TOTAL</th>
+                          <th style='width: 5%'>#</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tbody-produto">
+                      </tbody>
+                    </table>
+                  </div>
                 </form>
-                <div class="form-group">
-                  <label for="observacao">Observação:</label>
-                  <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-3 mb-3">
-                    <label for="firstName">Pesquisar:</label>
-                    <input type="text" class="form-control" id="firstName" placeholder="" value="" required>
-                    <div class="invalid-feedback">
-                      Valid first name is required.
-                    </div>
-                  </div>
-
-                  <div class="col-md-5 mb-3">
-                    <label for="state">Produto:</label>
-                    <?php
-                    $strSQL = "";
-                    $strSQL .= " SELECT ";
-                    $strSQL .= "	tbproduto.id, ";
-                    $strSQL .= "	CONCAT(tbproduto.id, ' * ', tbproduto.sDescricao, ' *' ,tbproduto.fpreco) AS prod, ";
-                    $strSQL .= "	CONCAT(tbproduto.sDescricao, ' / QTDE: ',tbproduto.iquantidade) AS CONCAT, ";
-                    $strSQL .= "	tbproduto.sDescricao ";
-                    $strSQL .= " FROM tbproduto";
-                    $retornoQuery = $MySQLi->query($strSQL);
-                    echo "<select key='btnFormEncerrar' name='idProduto' id='idProduto' class='form-control' style='display:block;'>";
-                    echo "<option value=''></option>";
-                    while ($rsDropDown = $retornoQuery->fetch_object())
-                      echo "<option value='" . $rsDropDown->prod . "'>" . $rsDropDown->CONCAT . "</option>";
-                    echo "</select>";
-                    ?>
-                  </div>
-
-                  <div class="col-md-1 mb-3">
-                    <label for="quantidade">Qtde:</label>
-                    <input type="text" class="form-control" id="quantidade" value="" required>
-                    <div class="invalid-feedback">
-                      Valid first name is required.
-                    </div>
-                  </div>
-
-                  <script>
-                    var listProdutos = [];
-                  </script>
-                  <div class="form-group col-sm-1" onclick="addProduto()" style="padding-top: 35px; padding-left: 20px;">
-                    <a><img src="plus.PNG" title="Adicionar Produto?" class="img" alt="Inserir"></a>
-                  </div>
-                </div>
-
-                <div class="table-responsive">
-                  <table id="table-produto" class='table table-striped table-sm'>
-                    <thead>
-                      <tr>
-                        <th style='width: 5%'>ID</th>
-                        <th style='width: 40%'>DESCRICAO</th>
-                        <th style='width: 10%'>QTD</th>
-                        <th style='width: 10%'>PREÇO</th>
-                        <th style='width: 20%'>TOTAL</th>
-                        <th style='width: 5%'>#</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                  </table>
-                </div>
               </div>
+            </div>
+            <div style="text-align:center; display: none;" id="carregando">
+              <img alt="" src="ajax-loading.gif">
             </div>
             <div class="modal-footer">
               <button type="button" onclick="add()" class="btn btn-success"><i class="fa fa-share-square"></i>&nbsp; Salvar</i></button>
@@ -195,22 +208,38 @@
             <?php
             $strSQL = "";
             $strSQL .= " SELECT ";
-            $strSQL .= " 	id, ";
-            $strSQL .= " 	istatus, ";
-            $strSQL .= " 	sCondicao , ";
-            $strSQL .= " 	fTotal, ";
-            $strSQL .= " 	sObservacao, ";
-            $strSQL .= " 	dataVenda ";
+            $strSQL .= " 	tbVenda.id, ";
+            $strSQL .= " 	tbVenda.istatus, ";
+            $strSQL .= " 	tbVenda.sCondicao, ";
+            // $strSQL .= " 	(SELECT  format(SUM(ftotal),2,'de_DE') AS ftotal FROM tblistprodutovenda WHERE tblistprodutovenda.idVenda= tbVenda.id) AS fTotal, ";
+            $strSQL .= " 	tbVenda.sObservacao, ";
+            $strSQL .= " 	tbVenda.dataVenda, ";
+            $strSQL .= " 	tbAluno.sNome ";
             $strSQL .= " FROM tbVenda ";
-            $strSQL .= " WHERE IFNULL(fDeletado, 0) = 0 ";
+            $strSQL .= " LEFT JOIN tbAluno ON tbAluno.id = tbVenda.idAluno ";
+            $strSQL .= " WHERE IFNULL(tbVenda.fDeletado, 0) = 0 ";
             if ($retornoQuery = $MySQLi->query($strSQL)) {
+              $total = 0;
               while ($rsListagem = $retornoQuery->fetch_object()) {
+                $sql = "SELECT  fTotal FROM tblistprodutovenda WHERE tblistprodutovenda.idVenda= $rsListagem->id AND IFNULL(tblistprodutovenda.fDeletado, 0) = 0";
+                $aux = (int) 0;
+                $valor = "";
+                if ($retorno = $MySQLi->query($sql)) {
+                  while ($rs = $retorno->fetch_object()) {
+                    $valor = str_replace('R$', '', str_replace('.', '', str_replace(',', '', $rs->fTotal)));
+                    $aux = ((int) $aux + (int) $valor);
+                  }
+                }
+                $tam = strlen($aux);
+                $final = substr_replace($aux, ".", $tam - 2) . substr($aux, $tam - 2);
+                $formatter = new NumberFormatter('pt_BR',  NumberFormatter::CURRENCY);
+
                 echo "<tr ondblclick='edit(" . $rsListagem->id . ")'>";
                 printf('<td>%s</td>', $rsListagem->id);
                 printf('<td>%s</td>', $rsListagem->istatus);
-                printf('<td>%s</td>', "joao");
+                printf('<td>%s</td>', $rsListagem->sNome);
                 printf('<td>%s</td>', $rsListagem->dataVenda);
-                printf('<td>R$ %s</td>', $rsListagem->fTotal);
+                printf('<td>%s</td>', $formatter->formatCurrency($final, 'BRL'));
                 printf("<td><i onclick='remove($rsListagem->id)' title='remover aluno?' class='far fa-times-circle'></i></td>");
                 echo "</tr>";
               }
@@ -247,6 +276,8 @@
     }
 
     function edit(idVenda) {
+      document.getElementById("idVenda").value = idVenda;
+
       jQuery.ajax({
         type: 'POST',
         url: 'actVenda.php',
@@ -259,6 +290,37 @@
           document.getElementById('status').value = mySplitResult[1];
           document.getElementById('condicao').value = mySplitResult[2];
           document.getElementById('observacao').value = mySplitResult[3];
+          document.getElementById('idAluno').value = mySplitResult[4];
+          // document.getElementById('listProdutos').value = mySplitResult[5];
+
+          for (var i = 0; i < mySplitResult[5].length; i++) {
+            if (mySplitResult[i] == undefined) {
+              // console.log(i, 'indefinido');
+            } else {
+              var aux = mySplitResult[i].indexOf("#|#") > -1;
+              if (aux) {
+
+                var prod = mySplitResult[i].split("-");
+                var newRow = $("<tr>");
+                var cols = "";
+                cols += '<td>' + prod[0] + '</td>';
+                cols += '<td>' + prod[1] + '</td>';
+                cols += '<td>' + prod[2] + '</td>';
+                cols += '<td>' + prod[3] + '</td>';
+                cols += '<td>' + prod[4].replace('#|#', '') + '</td>';
+                cols += '<td>';
+                cols += '<i onclick="deleteProd(' + prod[0] + ')" title="remover produto?" class="far fa-times-circle"></i>';
+                cols += '</td>';
+                newRow.append(cols);
+                $("#table-produto").append(newRow);
+                console.log(i, aux); // i é o índice, matriz[i] é o valor
+              }
+
+            }
+            // console.log(i, mySplitResult[i]); // i é o índice, matriz[i] é o valor
+          }
+
+
           jQuery.noConflict();
           $("#modalVenda").modal({
             show: true
@@ -314,8 +376,10 @@
         url: 'actVenda.php',
         data: '&Action=' + action +
           '&idVenda=' + document.getElementById("id").value +
+          '&idAluno=' + document.getElementById("idAluno").value +
           '&status=' + document.getElementById("status").value +
           '&condicao=' + document.getElementById("condicao").value +
+          '&listProdutos=' + document.getElementById("listProdutos").value +
           '&observacao=' + document.getElementById("observacao").value,
         beforeSend: function(html) {
           $('#carregando').show();
@@ -346,7 +410,7 @@
 
       var result = document.getElementById("idProduto").value.split("*");
       var total = parseInt(document.getElementById("quantidade").value) * parseFloat(result[2].replace('.', '').replace(',', '.'));
-      var formatado = formatter.format(total); 
+      var formatado = formatter.format(total);
 
       var newRow = $("<tr>");
       var cols = "";
@@ -360,12 +424,35 @@
       cols += '</td>';
       newRow.append(cols);
       $("#table-produto").append(newRow);
-      return false;
 
+      listProdutos.push(result[0] + '*' + result[1] + '*' + document.getElementById("quantidade").value + '*' + result[2] + '*' + formatado + '#|#');
+      document.getElementById('listProdutos').value = listProdutos;
+
+      return false;
     }
 
     removeProd = function(i) {
-      document.getElementById('table-produto').deleteRow(i)
+      document.getElementById('table-produto').deleteRow(i);
+    }
+
+    deleteProd = function(idProd) {
+      if (idProd != "") {
+        jQuery.ajax({
+          type: 'POST',
+          url: 'actVenda.php',
+          data: '&Action=deleteProd' +
+            '&idProd=' + idProd +
+            '&idVenda=' + document.getElementById('idVenda').value,
+          beforeSend: function(html) {
+            $('#carregando').show();
+          },
+          success: function(html) {
+            $('#carregando').hide();
+            $('#tbody-produto').html(html);
+
+          }
+        });
+      }
     }
   </script>
 </body>
